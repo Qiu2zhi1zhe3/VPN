@@ -6,7 +6,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
+    env:
+      GOOS: android
+      GOARCH: arm64
+      CGO_ENABLED: 1
+      TAGS: with_clash_api    
+    steps:   
       - name: Get latest go version
         id: version
         run: |
@@ -27,7 +32,31 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: VPN
-          
+      - name: Checkout qjebbs/sing-box
+        uses: actions/checkout@v3
+        with:
+          repository: qjebbs/sing-box
+          path: sing-box
+
+      - name: Build SingBox file
+        run: |
+          cd sing-box || exit 1
+          go build -v -trimpath -tags "with_clash_api" -ldflags "-s -w -buildid=" -o ./bin/SingBox ./cmd/sing-box
+          cp ./bin/SingBox ../
+
+      - name: Checkout MetaCubeX/Clash.Meta
+        uses: actions/checkout@v3
+        with:
+          repository: MetaCubeX/Clash.Meta
+          ref: Alpha
+          path: Clash
+
+      - name: Build Clash.Meta file
+        run: |
+          cd Clash || exit 1
+          go build -tags "no_gvisor" -trimpath -ldflags '-X "github.com/Dreamacro/clash/constant.BuildTime=${{ env.TAG_NAME }}" -w -s -buildid=' -o ./bin/Clash.Meta
+          cp ./bin/Clash.Meta ../
+                    
       - name: Get host file
         run: |
           mkdir -p ./build/
@@ -109,30 +138,6 @@ jobs:
           go run -v .
           cp geoip-vn.db ../run/geoip_vn.db
           
-      - name: Checkout qjebbs/sing-box
-        uses: actions/checkout@v3
-        with:
-          repository: qjebbs/sing-box
-          path: sing-box
-
-      - name: Build SingBox file
-        run: |
-          cd sing-box || exit 1
-          GOARCH=arm64 GOOS=android CGO_ENABLED=1 go build -v -trimpath -tags "with_clash_api" -ldflags "-s -w -buildid=" -o ./bin/SingBox ./cmd/sing-box
-          cp ./bin/SingBox ../
-
-      - name: Checkout MetaCubeX/Clash.Meta
-        uses: actions/checkout@v3
-        with:
-          repository: MetaCubeX/Clash.Meta
-          ref: Alpha
-          path: Clash
-
-      - name: Build geosite.db file
-        run: |
-          cd Clash || exit 1
-          GOARCH=arm64 GOOS=android CGO_ENABLED=1 go build -tags "no_gvisor" -trimpath -ldflags '-X "github.com/Dreamacro/clash/constant.BuildTime=${{ env.TAG_NAME }}" -w -s -buildid=' -o ./bin/Clash.Meta
-          cp ./bin/Clash.Meta ../
       - name: Git push "VPN" branch
         run: |
           git config --local user.name "github-actions[bot]"
