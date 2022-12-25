@@ -1,5 +1,5 @@
 #!/system/bin/sh
-busybox_path="/system/xbin/busybox"
+busybox_path="/data/adb/magisk/busybox"
 VPN="/data/VPN"
 Clash_bin="Clash.Meta"
 Clash="${VPN}/${Clash_bin}"
@@ -22,7 +22,7 @@ fi
 
 singbox() {
 	chmod 0700 ${SingBox}
-	nohup ${SingBox} run -D ${VPN} >  /dev/null 2>&1 &
+	nohup ${busybox_path} setuidgid 0:3005 ${SingBox} run -D ${VPN} >  /dev/null 2>&1 &
 	sleep 2
 	if [[ $(pidof ${SingBox_bin}) ]] ; then
 		ip rule add from all iif tun0 lookup main suppress_prefixlength 0 pref 8000
@@ -41,7 +41,7 @@ singbox() {
 clash() {
 	chmod 0700 ${Clash}
 	ulimit -SHn 1000000
-	nohup ${busybox_path} setuidgid 0:3005 ${Clash} -d ${VPN} > ${VPN}/run/logs 2>&1 &
+	nohup ${busybox_path} setuidgid 0:3005 ${Clash} -d ${VPN} > /dev/null 2>&1 &
 	sleep 2
 	if [[ $(pidof ${Clash_bin}) ]] ; then
 		mkdir -p /dev/net
@@ -87,12 +87,26 @@ view() {
 		fi
     fi
 }
+update() {
+	mv config.yaml config.yaml.bk
+	mv config.json config.json.bk
+	git fetch --all && git reset --hard origin/master && git pull origin master
+	mv config.yaml.bk config.yaml
+	mv config.json.bk config.json
+	echo -en "${green} VPN Đã Được Cập Nhật"
+}
+uninstall() {
+	rm -rf /data/VPN /data/adb/modules/VPN
+	echo -en "${green} VPN Gỡ Cài Đặt"
+}
 menu() {
  MENU=(      "Bắt Đầu Chạy Clash.Meta"
              "Bắt Đầu Chạy SingBox"
 			 "Mở Bảng Điều Khiển"
              "Dừng VPN"
              "Trạng Thái VPN"
+             "Cập Nhật"
+             "Gỡ Cài Đặt"
              "Thoát Menu"
 )
 echo -e ""
@@ -123,7 +137,14 @@ case $REPLY in
          	view
              menu;;
          6 ) clear
-             exit ;;
+         	update
+         	menu
+             ;;
+         7 ) clear
+         	uninstall
+             exit ;;    
+         8 ) clear
+             exit ;;    
           *)  echo -en "${red} Vui Lòng Nhập Số Trong Menu "
 			 sleep 2 
 			 clear
