@@ -9,7 +9,7 @@ jobs:
     env:
       GOOS: android
       GOARCH: arm64
-      CGO_ENABLED: 1
+      CGO_ENABLED: 0
       TAGS: with_clash_api    
     steps:   
       - name: Get latest go version
