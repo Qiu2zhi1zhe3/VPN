@@ -1,4 +1,4 @@
-name: Build Host file
+name: Build VPN file
 on:
   workflow_dispatch:
   schedule:
@@ -123,6 +123,7 @@ jobs:
           EOF
           go run -v . geosite.dat geosite.db
           cp geosite.db ../run/geosite_vn.db
+          cp geosite.dat ../geosite.dat
       - name: Checkout SagerNet/sing-geoip
         uses: actions/checkout@v3
         with:
