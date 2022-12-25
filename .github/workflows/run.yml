@@ -73,7 +73,7 @@ jobs:
         with:
           repository: v2fly/domain-list-community
           path: custom
-          
+                   
       - name: Build geosite.dat file
         run: |
           cd custom || exit 1
@@ -82,6 +82,49 @@ jobs:
           cat ../build/hosts | awk '{print $2}' > ./data/ads
           go run ./ -outputname=geosite.dat -outputdir=../
           
+      - name: Checkout Loyalsoldier/geoip
+        uses: actions/checkout@v3
+        with:
+          repository: Loyalsoldier/geoip
+          path: geoip
+                   
+      - name: Build geoip.dat file
+        run: |
+          cd geoip || exit 1
+          mkdir -p ./data
+          echo "1.0.1.5/32" > ./data/cn.txt
+          curl -sL https://raw.githubusercontent.com/Loyalsoldier/geoip/release/text/vn.txt -o ./data/vn.txt
+          cat << EOF > config.json
+          {
+            "input": [
+              {
+                "type": "text",
+                "action": "add",
+                "args": {
+                  "inputDir": "./data",
+                  "onlyIPType": "ipv4"
+                }
+              },
+              {
+                "type": "private",
+                "action": "add"
+              }
+            ],
+            "output": [
+              {
+                "type": "v2rayGeoIPDat",
+                "action": "output",
+                "args": {
+                  "outputName": "geoip.dat",
+                  "outputDir": "../",
+                  "wantedList": ["vn", "cn", "private"]
+                }
+              }
+            ]
+          }
+          EOF
+          go run -v .
+                    
       - name: Checkout SagerNet/sing-geosite
         uses: actions/checkout@v3
         with:
@@ -123,7 +166,6 @@ jobs:
           EOF
           go run -v . geosite.dat geosite.db
           cp geosite.db ../run/geosite_vn.db
-          cp geosite.dat ../geosite.dat
       - name: Checkout SagerNet/sing-geoip
         uses: actions/checkout@v3
         with:
