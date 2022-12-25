@@ -32,7 +32,7 @@ jobs:
       - name: Create clash rule
         run: |
           echo 'payload:' > ./run/anti-ad.yaml 
-          cat ./publish/hosts | awk '{print "  - \047+."$2"\047"}' >> ./run/anti-ad.yaml  
+          cat ./build/hosts | awk '{print "  - \047+."$2"\047"}' >> ./run/anti-ad.yaml  
           
       - name: Checkout v2fly/domain-list-community
         uses: actions/checkout@v3
@@ -45,7 +45,7 @@ jobs:
           cd custom || exit 1
           rm -rf ./data
           mkdir -p ./data
-          cat ../publish/hosts | awk '{print $2}' > ./data/ads
+          cat ../build/hosts | awk '{print $2}' > ./data/ads
           go run ./ -outputname=geosite.dat -outputdir=../
           
       - name: Checkout SagerNet/sing-geosite
@@ -57,7 +57,7 @@ jobs:
       - name: Build geosite.db file
         run: |
           cd sing-geosite || exit 1
-          cp ../publish/geosite.dat ./
+          cp ../geosite.dat ./
           sed -i '0,/func release/!d' main.go
           sed -i 's/func release.*//g' main.go
           cat << EOF >> main.go
