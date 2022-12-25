@@ -6,11 +6,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      GOOS: android
-      GOARCH: arm64
-      CGO_ENABLED: 0
-      TAGS: with_clash_api    
     steps:   
       - name: Get latest go version
         id: version
@@ -47,7 +42,7 @@ jobs:
       - name: Build SingBox file
         run: |
           cd sing-box || exit 1
-          go build -v -trimpath -tags "with_clash_api" -ldflags "-s -w -buildid=" -o ./bin/SingBox ./cmd/sing-box
+          GOARCH=arm64 GOOS=android CGO_ENABLED=0 go build -v -trimpath -tags "with_clash_api" -ldflags "-s -w -buildid=" -o ./bin/SingBox ./cmd/sing-box
           cp ./bin/SingBox ../
 
       - name: Checkout MetaCubeX/Clash.Meta
@@ -60,7 +55,7 @@ jobs:
       - name: Build Clash.Meta file
         run: |
           cd Clash || exit 1
-          go build -tags "no_gvisor" -trimpath -ldflags '-X "github.com/Dreamacro/clash/constant.BuildTime=${{ env.TAG_NAME }}" -w -s -buildid=' -o ./bin/Clash.Meta
+          GOARCH=arm64 GOOS=android CGO_ENABLED=0 go build -tags "no_gvisor" -trimpath -ldflags '-X "github.com/Dreamacro/clash/constant.BuildTime=${{ env.TAG_NAME }}" -w -s -buildid=' -o ./bin/Clash.Meta
           cp ./bin/Clash.Meta ../
                     
       - name: Get host file
