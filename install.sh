@@ -19,6 +19,6 @@ echo && read -p "  Vui lòng nhập link subscribe: " link
 if [[ $link != "" ]] ;  then
 su -c sed -i "s+link\ sub+$link+g" /data/VPN/config.yaml
 su -c sed -i "s+link\ sub+$link+g" /data/VPN/config.json
-sudo curl -sL $link -o /data/VPN/sub.txt
+sudo curl -sL $link -o /data/VPN/run/sub.txt
 fi
 echo ' Hãy gõ lệnh "su" và "vpn" để truy cập vào menu sau khi khởi động lại '
