@@ -88,6 +88,7 @@ view() {
     fi
 }
 update() {
+	cd /data/VPN
 	mv config.yaml config.yaml.bk
 	mv config.json config.json.bk
 	git fetch --all && git reset --hard origin/VPN && git pull origin VPN
