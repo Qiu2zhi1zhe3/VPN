@@ -14,9 +14,12 @@ black="\033[1;40;30m"
 yellow="\033[1;33m"
 cyan="\033[1;36m"
 reset="\033[0m"
+
 if [[ "$(id -u)" -ne 0 ]]; then
   echo -e "${red} Vui lòng chạy với quyền root"
   exit
+fi
+
 singbox() {
 	chmod 0700 ${SingBox}
 	nohup ${SingBox} run -D ${VPN} >  /dev/null 2>&1 &
@@ -27,7 +30,7 @@ singbox() {
 		iptables -w 100 -I FORWARD -o tun0 -j ACCEPT
 		iptables -w 100 -I FORWARD -i tun0 -j ACCEPT
 		echo "Singbox đã được bắt đầu"
-		sed -i 's/clash/singbox/g' /data/adb/service.d/vpn.sh
+		sed -i 's/clash/singbox/g' /data/adb/modules/VPN/service.sh
 		ps -p $(pidof ${SingBox_bin}) -o pid,uid,gid,rss,vsz,%cpu,time
 	else
 		 echo -e "${red} Error"
@@ -45,7 +48,7 @@ clash() {
 		ln -sf /dev/tun /dev/net/tun
 		iptables -w 100 -I FORWARD -o Meta -j ACCEPT
 		iptables -w 100 -I FORWARD -i Meta -j ACCEPT
-		sed -i 's/singbox/clash/g' /data/adb/service.d/vpn.sh
+		sed -i 's/singbox/clash/g' /data/adb/modules/VPN/service.sh
 		echo "Clash đã được bắt đầu"
 		ps -p $(pidof ${Clash_bin}) -o pid,uid,gid,rss,vsz,%cpu,time
 	else
@@ -120,7 +123,7 @@ case $REPLY in
          	view
              menu;;
          6 ) clear
-             break ;;
+             exit ;;
           *)  echo -en "${red} Vui Lòng Nhập Số Trong Menu "
 			 sleep 2 
 			 clear
