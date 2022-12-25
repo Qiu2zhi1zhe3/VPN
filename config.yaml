@@ -1,0 +1,59 @@
+mixed-port: 8888
+#tproxy-port: 7893
+allow-lan: true
+mode: rule
+log-level: silent
+ipv6: false
+udp: true
+geodata-mode: true
+unified-delay: true
+skip-cert-verify: true
+tcp-concurrent: true
+external-controller: 0.0.0.0:9090
+external-ui: Dashboard
+profile: {store-fake-ip: true, store-selected: true}
+tun:
+    enable: true
+    stack: system
+    device: Meta
+    dns-hijack: ['any:53']
+    auto-route: true
+    auto-detect-interface: true
+sniffer:
+    enable: true
+    sniffing: [tls, http]
+    skip-domain: ['Mijia Cloud', '+.apple.com', 'zalo']
+hosts:
+    'clash.vn': 0.0.0.0
+dns:
+    enable: true
+    listen: 0.0.0.0:1053
+    ipv6: false
+    use-hosts: true
+    enhanced-mode: fake-ip #redir-host #
+    fake-ip-range: 28.0.0.1/8
+    fake-ip-filter: ['+.lan','+.stun.*.*', '+.stun.*.*.*', '+.stun.*.*.*.*', '+.stun.*.*.*.*.*']
+    default-nameserver: [8.8.8.8/dns-query, 8.8.4.4/dns-query]
+    nameserver: [8.8.8.8/dns-query, 8.8.4.4/dns-query]
+rule-providers:
+    anti-ad:
+        behavior: "domain"
+        type: file
+        path: ./run/anti-ad.yaml
+        interval: 86400 
+proxy-providers:
+    Hello4G:
+        type: http
+        url: "link sub"
+        path: ./run/0.yaml
+        health-check: {enable: true, url: http://www.gstatic.com/generate_204}
+proxy-groups:
+    - {name: Trong Nước, type: select, use: [Hello4G], proxies: [DIRECT]}
+    - {name: Proxy, type: select, use: [Hello4G], proxies: [DIRECT]}
+    - {name: Chặn QC, type: select, proxies: [REJECT, Proxy]}
+rules:
+    - DOMAIN-SUFFIX,local,DIRECT
+    - RULE-SET,anti-ad,Chặn QC
+    - GEOIP,PRIVATE,DIRECT,no-resolve
+    - GEOIP,vn,Trong Nước
+    - MATCH,Proxy
