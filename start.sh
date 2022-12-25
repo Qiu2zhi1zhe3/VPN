@@ -90,7 +90,7 @@ view() {
 update() {
 	mv config.yaml config.yaml.bk
 	mv config.json config.json.bk
-	git fetch --all && git reset --hard origin/master && git pull origin master
+	git fetch --all && git reset --hard origin/VPN && git pull origin VPN
 	mv config.yaml.bk config.yaml
 	mv config.json.bk config.json
 	echo -en "${green} VPN Đã Được Cập Nhật"
