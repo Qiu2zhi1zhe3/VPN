@@ -31,8 +31,8 @@ jobs:
 
       - name: Create clash rule
         run: |
-          echo 'payload:' > ./build/anti-ad.yaml 
-          cat ./build/hosts | awk '{print "  - \047+."$2"\047"}' >> ./build/anti-ad.yaml  
+          echo 'payload:' > ./run/anti-ad.yaml 
+          cat ./build/hosts | awk '{print "  - \047+."$2"\047"}' >> ./run/anti-ad.yaml  
           
       - name: Checkout v2fly/domain-list-community
         uses: actions/checkout@v3
@@ -46,7 +46,7 @@ jobs:
           rm -rf ./data
           mkdir -p ./data
           cat ../build/hosts | awk '{print $2}' > ./data/ads
-          go run ./ -outputname=geosite.dat -outputdir=../build/
+          go run ./ -outputname=geosite.dat -outputdir=../
           
       - name: Checkout SagerNet/sing-geosite
         uses: actions/checkout@v3
@@ -57,7 +57,7 @@ jobs:
       - name: Build geosite.db file
         run: |
           cd sing-geosite || exit 1
-          cp ../build/geosite.dat ./
+          cp ../geosite.dat ./
           sed -i '0,/func release/!d' main.go
           sed -i 's/func release.*//g' main.go
           cat << EOF >> main.go
@@ -88,7 +88,7 @@ jobs:
           }
           EOF
           go run -v . geosite.dat geosite.db
-          cp geosite.db ../build/geosite_vn.db
+          cp geosite.db ../run/geosite_vn.db
       - name: Checkout SagerNet/sing-geoip
         uses: actions/checkout@v3
         with:
@@ -102,14 +102,34 @@ jobs:
           cd sing-geoip || exit 1
           sed -i 's/cn/vn/g' main.go
           go run -v .
-          cp geoip-vn.db ../build/geoip_vn.db
+          cp geoip-vn.db ../run/geoip_vn.db
           
+      - name: Checkout qjebbs/sing-box
+        uses: actions/checkout@v3
+        with:
+          repository: qjebbs/sing-box
+          path: sing-box
+
+      - name: Build SingBox file
+        run: |
+          cd sing-box || exit 1
+          GOARCH=arm64 GOOS=android CGO_ENABLED=1 go build -v -trimpath -tags "with_clash_api" -ldflags "-s -w -buildid=" -o ./bin/SingBox ./cmd/sing-box
+          cp ./bin/SingBox ../
+
+      - name: Checkout MetaCubeX/Clash.Meta
+        uses: actions/checkout@v3
+        with:
+          repository: MetaCubeX/Clash.Meta
+          ref: Alpha
+          path: Clash
+
+      - name: Build geosite.db file
+        run: |
+          cd Clash || exit 1
+          GOARCH=arm64 GOOS=android CGO_ENABLED=1 go build -tags "no_gvisor" -trimpath -ldflags '-X "github.com/Dreamacro/clash/constant.BuildTime=${{ env.TAG_NAME }}" -w -s -buildid=' -o ./bin/Clash.Meta
+          cp ./bin/Clash.Meta ../
       - name: Git push "VPN" branch
         run: |
-          cp ./build/anti-ad.yaml ./run/
-          cp ./build/geosite.dat ./
-          cp ./build/geosite_vn.db ./run/
-          cp ./build/geoip_vn.db ./run/
           git config --local user.name "github-actions[bot]"
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -a -m "${{ env.RELEASE_NAME }}"
