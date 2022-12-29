@@ -129,7 +129,8 @@ case $REPLY in
              singbox
              menu;;
          3 ) clear
-             xdg-open http://localhost:9090/ui/#/proxies
+            am start -a android.intent.acti
+	    on.VIEW http://localhost:9090/ui
              menu ;;
          4 ) clear
              stop
@@ -170,7 +171,8 @@ case "$1" in
     stop
     ;;
   web)
-    xdg-open http://localhost:9090/ui/#/proxies 
+    am start -a android.intent.acti
+    on.VIEW http://localhost:9090/ui
     ;;
   view)
     view 
